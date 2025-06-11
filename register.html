@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Sistem Peminjaman Barang</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .register-container {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+    }
+
+    .logo {
+      margin-bottom: 30px;
+    }
+
+    .logo h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .logo p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      margin-bottom: 20px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .divider {
+      margin: 20px 0;
+      position: relative;
+      text-align: center;
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #e1e5e9;
+    }
+
+    .divider span {
+      background: white;
+      padding: 0 15px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .login-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .login-link:hover {
+      text-decoration: underline;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .alert-error {
+      background-color: #fee;
+      color: #c33;
+      border: 1px solid #fcc;
+    }
+
+    .alert-success {
+      background-color: #efe;
+      color: #363;
+      border: 1px solid #cfc;
+    }
+
+    .password-requirements {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .password-requirements h4 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .password-requirements ul {
+      margin-left: 15px;
+      color: #666;
+    }
+
+    .password-requirements li {
+      margin: 3px 0;
+    }
+
+    .info-note {
+      background: #e3f2fd;
+      border: 1px solid #bbdefb;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .info-note h4 {
+      color: #1976d2;
+      margin-bottom: 8px;
+    }
+
+    .info-note p {
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <div class="logo">
+      <h1>📦 PinjamSarana</h1>
+      <p>Daftar Akun User Baru</p>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="name">Nama Lengkap</label>
+        <input type="text" id="name" class="form-control" required placeholder="Masukkan nama lengkap">
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" class="form-control" required placeholder="Masukkan username">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" class="form-control" required placeholder="Masukkan email">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" class="form-control" required placeholder="Masukkan password">
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Konfirmasi Password</label>
+        <input type="password" id="confirmPassword" class="form-control" required placeholder="Konfirmasi password">
+      </div>
+
+      <div class="password-requirements">
+        <h4>📋 Persyaratan Password:</h4>
+        <ul>
+          <li>Minimal 6 karakter</li>
+          <li>Mengandung huruf dan angka</li>
+          <li>Password harus sama dengan konfirmasi</li>
+        </ul>
+      </div>
+
+      <button type="submit" class="btn" id="registerBtn">📝 Daftar Sekarang</button>
+    </form>
+
+    <div class="divider">
+      <span>atau</span>
+    </div>
+
+    <p>Sudah punya akun? <a href="login.html" class="login-link">Masuk di sini</a></p>
+  </div>
+
+  <script>
+    // Show alert function
+    function showAlert(message, type = 'error') {
+      const alertContainer = document.getElementById('alertContainer');
+      alertContainer.innerHTML = `
+        <div class="alert alert-${type}">
+          ${message}
+        </div>
+      `;
+      
+      setTimeout(() => {
+        alertContainer.innerHTML = '';
+      }, 5000);
+    }
+
+    // Validate email format
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    // Validate password
+    function isValidPassword(password) {
+      // At least 6 characters, contains letters and numbers
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
+      return passwordRegex.test(password);
+    }
+
+    // Validate username
+    function isValidUsername(username) {
+      // 3-20 characters, alphanumeric and underscore only
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      return usernameRegex.test(username);
+    }
+
+    // Register function
+    function register(userData) {
+      let users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+      
+      // Check if username already exists
+      const existingUser = users.find(u => u.username === userData.username);
+      if (existingUser) {
+        showAlert('Username sudah digunakan! Silakan pilih username lain.');
+        return false;
+      }
+
+      // Check if email already exists
+      const existingEmail = users.find(u => u.email === userData.email);
+      if (existingEmail) {
+        showAlert('Email sudah terdaftar! Silakan gunakan email lain.');
+        return false;
+      }
+
+      // Check if username is 'admin' (reserved)
+      if (userData.username.toLowerCase() === 'admin') {
+        showAlert('Username "admin" tidak dapat digunakan karena sudah reserved untuk administrator.');
+        return false;
+      }
+      
+      // Generate new ID
+      const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
+      
+      // Add new user
+      const newUser = {
+        id: newId,
+        name: userData.name,
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        role: 'user',
+        createdAt: new Date().toISOString()
+      };
+      
+      users.push(newUser);
+      localStorage.setItem('registeredUsers', JSON.stringify(users));
+      
+      showAlert(`Pendaftaran berhasil! Selamat datang, ${userData.name}!`, 'success');
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 2000);
+      
+      return true;
+    }
+
+    // Handle form submit
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const registerBtn = document.getElementById('registerBtn');
+      registerBtn.disabled = true;
+      registerBtn.textContent = 'Memproses...';
+      
+      const name = document.getElementById('name').value.trim();
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      // Validation
+      if (!name || !username || !email || !password || !confirmPassword) {
+        showAlert('Mohon isi semua field!');
+        registerBtn.disabled = false;
+        registerBtn.textContent = '📝 Daftar Sekarang';
+        return;
+      }
+      
+      if (name.length < 2) {
+        showAlert('Nama harus minimal 2 karakter!');
+        registerBtn.disabled = false;
+        registerBtn.textContent = '📝 Daftar Sekarang';
+        return;
+      }
+
+      if (!isValidUsername(username)) {
+        showAlert('Username harus 3-20 karakter dan hanya boleh mengandung huruf, angka, dan underscore!');
+        registerBtn.disabled = false;
+        registerBtn.textContent = '📝 Daftar Sekarang';
+        return;
+      }
+      
+      if (!isValidEmail(email)) {
+        showAlert('Format email tidak valid!');
+        registerBtn.disabled = false;
+        registerBtn.textContent = '📝 Daftar Sekarang';
+        return;
+      }
+      
+      if (!isValidPassword(password)) {
+        showAlert('Password harus minimal 6 karakter dan mengandung huruf serta angka!');
+        registerBtn.disabled = false;
+        registerBtn.textContent = '📝 Daftar Sekarang';
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        showAlert('Password dan konfirmasi password tidak sama!');
+        registerBtn.disabled = false;
+        registerBtn.textContent = '📝 Daftar Sekarang';
+        return;
+      }
+      
+      // Simulate processing time
+      setTimeout(() => {
+        // Process registration
+        register({
+          name: name,
+          username: username,
+          email: email,
+          password: password
+        });
+        
+        registerBtn.disabled = false;
+        registerBtn.textContent = '📝 Daftar Sekarang';
+      }, 1000);
+    });
+
+    // Real-time password validation
+    document.getElementById('password').addEventListener('input', function() {
+      const password = this.value;
+      const requirements = document.querySelector('.password-requirements');
+      
+      if (password.length > 0) {
+        if (isValidPassword(password)) {
+          requirements.style.borderLeft = '4px solid #27ae60';
+        } else {
+          requirements.style.borderLeft = '4px solid #e74c3c';
+        }
+      } else {
+        requirements.style.borderLeft = 'none';
+      }
+    });
+
+    // Real-time confirm password validation
+    document.getElementById('confirmPassword').addEventListener('input', function() {
+      const password = document.getElementById('password').value;
+      const confirmPassword = this.value;
+      
+      if (confirmPassword.length > 0) {
+        if (password === confirmPassword) {
+          this.style.borderColor = '#27ae60';
+        } else {
+          this.style.borderColor = '#e74c3c';
+        }
+      } else {
+        this.style.borderColor = '#e1e5e9';
+      }
+    });
+
+    // Real-time username validation
+    document.getElementById('username').addEventListener('input', function() {
+      const username = this.value;
+      
+      if (username.length > 0) {
+        if (username.toLowerCase() === 'admin') {
+          this.style.borderColor = '#e74c3c';
+          showAlert('Username "admin" tidak dapat digunakan!');
+        } else if (isValidUsername(username)) {
+          this.style.borderColor = '#27ae60';
+        } else {
+          this.style.borderColor = '#e74c3c';
+        }
+      } else {
+        this.style.borderColor = '#e1e5e9';
+      }
+    });
+
+    // Check if already logged in
+    function checkLoginStatus() {
+      const loggedInUser = localStorage.getItem('loggedInUser');
+      if (loggedInUser) {
+        const user = JSON.parse(loggedInUser);
+        if (user.role === 'admin') {
+          window.location.href = 'dashboard-admin.html';
+        } else {
+          window.location.href = 'dashboard-user.html';
+        }
+      }
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      checkLoginStatus();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,2460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Admin - Peminjaman Barang</title>
+  <!-- jsPDF Library - Updated version -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- SheetJS Library for Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Chart.js Library for Dashboard Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .user-info {
+      background-color: #34495e;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .user-info .avatar {
+      width: 50px;
+      height: 50px;
+      background-color: #3498db;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      font-size: 20px;
+    }
+
+    .user-info .name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .user-info .role {
+      font-size: 12px;
+      color: #bdc3c7;
+    }
+
+    .sidebar nav ul {
+      list-style: none;
+    }
+
+    .sidebar nav ul li {
+      margin-bottom: 10px;
+    }
+
+    .sidebar nav ul li a {
+      color: white;
+      text-decoration: none;
+      padding: 10px;
+      display: block;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      cursor: pointer;
+    }
+
+    .sidebar nav ul li a:hover,
+    .sidebar nav ul li a.active {
+      background-color: #34495e;
+    }
+
+    .main {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .header-info {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header-info h1 {
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+
+    .header-info p {
+      color: #7f8c8d;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .export-buttons {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .btn-success {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .btn-warning {
+      background-color: #f39c12;
+      color: white;
+    }
+
+    .btn-excel {
+      background-color: #1d6f42;
+      color: white;
+    }
+
+    .btn-pdf {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .btn-info {
+      background-color: #17a2b8;
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .status-pending {
+      background-color: #f39c12;
+      color: white;
+    }
+
+    .status-approved {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    .status-rejected {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .status-active {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .status-completed {
+      background-color: #95a5a6;
+      color: white;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+    }
+
+    .modal.show {
+      display: block;
+    }
+
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
+      max-width: 90%;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .close {
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .export-info {
+      background: #e8f4fd;
+      border: 1px solid #bee5eb;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .export-info h4 {
+      color: #0c5460;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .export-info p {
+      color: #0c5460;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .loading {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      z-index: 2000;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .stats-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .stat-card h3 {
+      font-size: 2em;
+      margin-bottom: 5px;
+      color: #3498db;
+    }
+
+    .stat-card p {
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+
+    /* Dashboard Styles */
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: transform 0.3s ease;
+      border-left: 4px solid;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .stat-card.primary { border-left-color: #3498db; }
+    .stat-card.success { border-left-color: #27ae60; }
+    .stat-card.warning { border-left-color: #f39c12; }
+    .stat-card.info { border-left-color: #9b59b6; }
+
+    .stat-icon {
+      font-size: 3em;
+      opacity: 0.8;
+    }
+
+    .stat-content h3 {
+      font-size: 2.5em;
+      margin: 0;
+      color: #2c3e50;
+    }
+
+    .stat-content p {
+      margin: 5px 0;
+      color: #7f8c8d;
+      font-weight: 600;
+    }
+
+    .stat-content small {
+      color: #95a5a6;
+      font-size: 0.9em;
+    }
+
+    /* Charts Section */
+    .charts-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .chart-card {
+      padding: 20px;
+    }
+
+    .chart-card h4 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    .chart-card canvas {
+      max-height: 300px;
+    }
+
+    /* Activities Section */
+    .activities-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .activity-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    .activity-card h4 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+      border-bottom: 2px solid #ecf0f1;
+      padding-bottom: 10px;
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 12px 0;
+      border-bottom: 1px solid #ecf0f1;
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .activity-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      color: white;
+    }
+
+    .activity-icon.success { background: #27ae60; }
+    .activity-icon.warning { background: #f39c12; }
+    .activity-icon.danger { background: #e74c3c; }
+    .activity-icon.info { background: #3498db; }
+
+    .activity-content {
+      flex: 1;
+    }
+
+    .activity-content .title {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 3px;
+    }
+
+    .activity-content .subtitle {
+      font-size: 0.9em;
+      color: #7f8c8d;
+    }
+
+    .activity-time {
+      font-size: 0.8em;
+      color: #95a5a6;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    .quick-actions h4 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+      border-bottom: 2px solid #ecf0f1;
+      padding-bottom: 10px;
+    }
+
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px 20px;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+    }
+
+    .action-btn:hover {
+      background: #e9ecef;
+      border-color: #3498db;
+      transform: translateY(-2px);
+    }
+
+    .action-icon {
+      font-size: 1.5em;
+    }
+
+    .action-btn span:nth-child(2) {
+      flex: 1;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .action-count {
+      background: #3498db;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .charts-section,
+      .activities-section {
+        grid-template-columns: 1fr;
+      }
+      
+      .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .action-buttons {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>Dashboard Admin</h2>
+      
+      <!-- User Info -->
+      <div class="user-info">
+        <div class="avatar" id="userAvatar">👨‍💼</div>
+        <div class="name" id="userName">Loading...</div>
+        <div class="role" id="userRole">Administrator</div>
+      </div>
+      
+      <nav>
+        <ul>
+          <li><a href="#" onclick="showSection('dashboard')" id="menu-dashboard" class="active">Dashboard</a></li>
+          <li><a href="#" onclick="showSection('manajemenBarang')" id="menu-manajemenBarang">Manajemen Barang</a></li>
+          <li><a href="#" onclick="showSection('approvalPeminjaman')" id="menu-approvalPeminjaman">Approval Peminjaman</a></li>
+          <li><a href="#" onclick="showSection('approvalPengembalian')" id="menu-approvalPengembalian">Approval Pengembalian</a></li>
+          <li><a href="#" onclick="showSection('rekapan')" id="menu-rekapan">Rekapan</a></li>
+          <li><a href="#" onclick="showSection('manajemenUser')" id="menu-manajemenUser">Manajemen User</a></li>
+          <li><a href="#" onclick="logout()">🚪 Keluar</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <!-- Header Info -->
+      <div class="header-info">
+        <h1>Selamat Datang, <span id="welcomeName">Admin</span>!</h1>
+        <p>Kelola sistem peminjaman barang dengan mudah dan efisien.</p>
+      </div>
+
+      <!-- Dashboard Overview -->
+      <section id="dashboard" class="hidden">
+        <div class="section-header">
+          <h2>Dashboard Overview</h2>
+          <div class="export-buttons">
+          </div>
+        </div>
+
+        <!-- Main Stats Grid -->
+        <div class="dashboard-stats">
+          <div class="stat-card primary">
+            <div class="stat-icon">📦</div>
+            <div class="stat-content">
+              <h3 id="totalItemsCount">0</h3>
+              <p>Total Barang</p>
+              <small id="availableItemsCount">0 Tersedia</small>
+            </div>
+          </div>
+          
+          <div class="stat-card success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+              <h3 id="totalBorrowsCount">0</h3>
+              <p>Total Peminjaman</p>
+              <small id="activeBorrowsCount">0 Aktif</small>
+            </div>
+          </div>
+          
+          <div class="stat-card warning">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-content">
+              <h3 id="pendingApprovalsCount">0</h3>
+              <p>Menunggu Approval</p>
+              <small id="pendingReturnsCount">0 Pengembalian</small>
+            </div>
+          </div>
+          
+          <div class="stat-card info">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+              <h3 id="totalUsersCount">0</h3>
+              <p>Total User</p>
+              <small id="activeUsersCount">0 Aktif</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+          <div class="chart-container">
+            <div class="chart-card">
+              <h4>📊 Status Peminjaman</h4>
+              <canvas id="borrowStatusChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="chart-container">
+            <div class="chart-card">
+              <h4>📈 Trend Peminjaman Bulanan</h4>
+              <canvas id="monthlyTrendChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="activities-section">
+          <div class="activity-card">
+            <h4>🔔 Aktivitas Terbaru</h4>
+            <div class="activity-list" id="recentActivitiesList">
+              <!-- Activities will be populated by JavaScript -->
+            </div>
+          </div>
+          
+          <div class="activity-card">
+            <h4>⚠️ Perlu Perhatian</h4>
+            <div class="attention-list" id="attentionList">
+              <!-- Attention items will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <h4>⚡ Aksi Cepat</h4>
+          <div class="action-buttons">
+            <button onclick="showSection('approvalPeminjaman')" class="action-btn">
+              <span class="action-icon">✅</span>
+              <span>Approval Peminjaman</span>
+              <span class="action-count" id="quickPendingCount">0</span>
+            </button>
+            
+            <button onclick="showSection('approvalPengembalian')" class="action-btn">
+              <span class="action-icon">🔄</span>
+              <span>Approval Pengembalian</span>
+              <span class="action-count" id="quickReturnCount">0</span>
+            </button>
+            
+            <button onclick="showSection('manajemenBarang')" class="action-btn">
+              <span class="action-icon">📦</span>
+              <span>Kelola Barang</span>
+              <span class="action-count" id="quickItemsCount">0</span>
+            </button>
+            
+            <button onclick="showSection('rekapan')" class="action-btn">
+              <span class="action-icon">📈</span>
+              <span>Lihat Rekapan</span>
+              <span class="action-count" id="quickRekapCount">0</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Manajemen Barang -->
+      <section id="manajemenBarang" class="hidden">
+        <div class="section-header">
+          <h2>Manajemen Barang</h2>
+          <button onclick="showAddItemModal()" class="btn btn-primary">+ Tambah Barang</button>
+        </div>
+        <table id="itemsTable">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Barang</th>
+              <th>Jumlah Tersedia</th>
+              <th>Kondisi</th>
+              <th>Kategori</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTableBody">
+            <!-- Data akan diisi oleh JavaScript -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Approval Peminjaman -->
+      <section id="approvalPeminjaman" class="hidden">
+        <div class="section-header">
+          <h2>Approval Peminjaman</h2>
+          <div class="export-buttons">
+          <button onclick="cleanUndefinedData('borrow')" class="btn btn-warning">🧹 Bersihkan Data Undefined</button>
+            <button onclick="exportApprovalToExcel()" class="btn btn-excel">📊 Export Excel</button>
+            <button onclick="exportApprovalToPDF()" class="btn btn-pdf">📄 Export PDF</button>
+          </div>
+        </div>
+
+        <div class="export-info">
+          <h4>📋 Informasi Export</h4>
+          <p>Export data approval peminjaman dalam format Excel (.xlsx) atau PDF untuk dokumentasi dan laporan.</p>
+        </div>
+
+        <div class="stats-summary" id="approvalStats">
+          <!-- Stats akan diisi oleh JavaScript -->
+        </div>
+
+        <table id="approvalTable">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Peminjam</th>
+              <th>Barang</th>
+              <th>Jumlah</th>
+              <th>Tanggal Pengajuan</th>
+              <th>Tanggal Peminjaman</th>
+              <th>Tanggal Pengembalian</th>
+              <th>Keperluan</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="approvalTableBody">
+            <!-- Data akan diisi oleh JavaScript -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Approval Pengembalian -->
+      <section id="approvalPengembalian" class="hidden">
+        <div class="section-header">
+          <h2>Approval Pengembalian</h2>
+          <div class="export-buttons">
+          <button onclick="cleanUndefinedData('return')" class="btn btn-warning">🧹 Bersihkan Data Undefined</button>
+            <button onclick="exportReturnToExcel()" class="btn btn-excel">📊 Export Excel</button>
+            <button onclick="exportReturnToPDF()" class="btn btn-pdf">📄 Export PDF</button>
+          </div>
+        </div>
+
+        <div class="export-info">
+          <h4>🔄 Informasi Export</h4>
+          <p>Export data approval pengembalian dalam format Excel (.xlsx) atau PDF untuk tracking dan verifikasi.</p>
+        </div>
+
+        <div class="stats-summary" id="returnStats">
+          <!-- Stats akan diisi oleh JavaScript -->
+        </div>
+
+        <table id="returnTable">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Peminjam</th>
+              <th>Barang</th>
+              <th>Tanggal Kembali</th>
+              <th>Kondisi</th>
+              <th>Catatan</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="returnTableBody">
+            <!-- Data akan diisi oleh JavaScript -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Rekapan -->
+      <section id="rekapan" class="hidden">
+        <div class="section-header">
+          <h2>Rekapan Peminjaman</h2>
+          <div class="export-buttons">
+          <button onclick="cleanUndefinedData('recap')" class="btn btn-warning">🧹 Bersihkan Data Undefined</button>
+            <button onclick="exportRekapToExcel()" class="btn btn-excel">📊 Export Excel</button>
+            <button onclick="exportRekapToPDF()" class="btn btn-pdf">📄 Export PDF</button>
+            <button onclick="exportFullReport()" class="btn btn-info">📈 Laporan Lengkap</button>
+          </div>
+        </div>
+
+        <div class="export-info">
+          <h4>📈 Informasi Export</h4>
+          <p>Export rekapan lengkap peminjaman dalam format Excel (.xlsx) atau PDF. Laporan lengkap mencakup semua data dalam satu file.</p>
+        </div>
+
+        <div class="stats-summary" id="rekapStats">
+          <!-- Stats akan diisi oleh JavaScript -->
+        </div>
+
+        <table id="rekapTable">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Peminjam</th>
+              <th>Barang</th>
+              <th>Tanggal Peminjaman</th>
+              <th>Tanggal Pengembalian</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="rekapTableBody">
+            <!-- Data akan diisi oleh JavaScript -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Manajemen User -->
+      <section id="manajemenUser" class="hidden">
+        <div class="section-header">
+          <h2>Manajemen User</h2>
+        </div>
+        <table id="usersTable">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Tanggal Daftar</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <!-- Data akan diisi oleh JavaScript -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div id="loadingIndicator" class="loading">
+    <div class="spinner"></div>
+    <p>Sedang memproses export...</p>
+  </div>
+
+  <!-- Modal Tambah/Edit Barang -->
+  <div id="itemModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Tambah Barang</h3>
+        <span class="close" onclick="closeModal()">&times;</span>
+      </div>
+      <form id="itemForm">
+        <input type="hidden" id="itemId">
+        <div class="form-group">
+          <label for="itemName">Nama Barang</label>
+          <input type="text" id="itemName" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="itemQuantity">Jumlah Tersedia</label>
+          <input type="number" id="itemQuantity" class="form-control" min="1" required>
+        </div>
+        <div class="form-group">
+          <label for="itemCondition">Kondisi</label>
+          <select id="itemCondition" class="form-control" required>
+            <option value="">Pilih Kondisi</option>
+            <option value="Baik">Baik</option>
+            <option value="Rusak Ringan">Rusak Ringan</option>
+            <option value="Rusak Berat">Rusak Berat</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="itemCategory">Kategori</label>
+          <input type="text" id="itemCategory" class="form-control" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" onclick="closeModal()">Batal</button>
+          <button type="submit" class="btn btn-success">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let currentUser = null;
+    let items = [];
+    let borrowRequests = [];
+    let returnRequests = [];
+    let borrowHistory = [];
+    let users = [];
+
+    // Check authentication and initialize
+    function checkAuth() {
+      const loggedInUser = localStorage.getItem('loggedInUser');
+      if (!loggedInUser) {
+        alert('Anda harus login terlebih dahulu!');
+        window.location.href = 'login.html';
+        return false;
+      }
+
+      currentUser = JSON.parse(loggedInUser);
+      if (currentUser.role !== 'admin') {
+        alert('Akses ditolak! Halaman ini khusus untuk admin.');
+        window.location.href = 'login.html';
+        return false;
+      }
+
+      // Update UI with user info
+      document.getElementById('userName').textContent = currentUser.name;
+      document.getElementById('welcomeName').textContent = currentUser.name;
+      document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+
+      return true;
+    }
+
+    // Load data from localStorage
+    function loadData() {
+      items = JSON.parse(localStorage.getItem('items')) || [
+        { id: 1, name: "Proyektor", quantity: 5, condition: "Baik", category: "Elektronik" },
+        { id: 2, name: "Kursi Lipat", quantity: 20, condition: "Baik", category: "Furniture" },
+        { id: 3, name: "Kabel Roll", quantity: 8, condition: "Rusak Ringan", category: "Elektronik" }
+      ];
+      
+      borrowRequests = JSON.parse(localStorage.getItem('borrowRequests')) || [];
+      returnRequests = JSON.parse(localStorage.getItem('returnRequests')) || [];
+      borrowHistory = JSON.parse(localStorage.getItem('borrowHistory')) || [];
+      users = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+    }
+
+    // Save data to localStorage
+    function saveData() {
+      localStorage.setItem('items', JSON.stringify(items));
+      localStorage.setItem('borrowRequests', JSON.stringify(borrowRequests));
+      localStorage.setItem('returnRequests', JSON.stringify(returnRequests));
+      localStorage.setItem('borrowHistory', JSON.stringify(borrowHistory));
+      localStorage.setItem('registeredUsers', JSON.stringify(users));
+    }
+
+    // Show loading indicator
+    function showLoading() {
+      document.getElementById('loadingIndicator').classList.add('show');
+    }
+
+    // Hide loading indicator
+    function hideLoading() {
+      document.getElementById('loadingIndicator').classList.remove('show');
+    }
+
+    // Show section function
+    function showSection(sectionId) {
+      // Hide all sections
+      const sections = document.querySelectorAll('main > section');
+      sections.forEach(section => section.classList.add('hidden'));
+      
+      // Show selected section
+      document.getElementById(sectionId).classList.remove('hidden');
+      
+      // Update active menu
+      const menuItems = document.querySelectorAll('.sidebar nav ul li a');
+      menuItems.forEach(item => item.classList.remove('active'));
+      document.getElementById(`menu-${sectionId}`).classList.add('active');
+      
+      // Render data based on section
+      switch(sectionId) {
+        case 'dashboard':
+          renderDashboard();
+          break;
+        case 'manajemenBarang':
+          renderItemsTable();
+          break;
+        case 'approvalPeminjaman':
+          renderApprovalTable();
+          renderApprovalStats();
+          break;
+        case 'approvalPengembalian':
+          renderReturnTable();
+          renderReturnStats();
+          break;
+        case 'rekapan':
+          renderRekapTable();
+          renderRekapStats();
+          break;
+        case 'manajemenUser':
+          renderUsersTable();
+          break;
+      }
+    }
+
+    // Render stats for approval section
+    function renderApprovalStats() {
+      const pending = borrowRequests.filter(r => r.status === 'pending').length;
+      const approved = borrowRequests.filter(r => r.status === 'approved').length;
+      const rejected = borrowRequests.filter(r => r.status === 'rejected').length;
+      const total = borrowRequests.length;
+
+      document.getElementById('approvalStats').innerHTML = `
+        <div class="stat-card">
+          <h3>${total}</h3>
+          <p>Total Pengajuan</p>
+        </div>
+        <div class="stat-card">
+          <h3>${pending}</h3>
+          <p>Menunggu Approval</p>
+        </div>
+        <div class="stat-card">
+          <h3>${approved}</h3>
+          <p>Disetujui</p>
+        </div>
+        <div class="stat-card">
+          <h3>${rejected}</h3>
+          <p>Ditolak</p>
+        </div>
+      `;
+    }
+
+    // Render stats for return section
+    function renderReturnStats() {
+      const pending = returnRequests.filter(r => r.status === 'pending').length;
+      const approved = returnRequests.filter(r => r.status === 'approved').length;
+      const rejected = returnRequests.filter(r => r.status === 'rejected').length;
+      const total = returnRequests.length;
+
+      document.getElementById('returnStats').innerHTML = `
+        <div class="stat-card">
+          <h3>${total}</h3>
+          <p>Total Pengembalian</p>
+        </div>
+        <div class="stat-card">
+          <h3>${pending}</h3>
+          <p>Menunggu Verifikasi</p>
+        </div>
+        <div class="stat-card">
+          <h3>${approved}</h3>
+          <p>Diverifikasi</p>
+        </div>
+        <div class="stat-card">
+          <h3>${rejected}</h3>
+          <p>Ditolak</p>
+        </div>
+      `;
+    }
+
+    // Render stats for recap section
+    function renderRekapStats() {
+      const allData = [...borrowRequests, ...borrowHistory];
+      const active = borrowHistory.filter(h => h.status === 'active').length;
+      const completed = borrowHistory.filter(h => h.status === 'completed').length;
+      const total = allData.length;
+
+      document.getElementById('rekapStats').innerHTML = `
+        <div class="stat-card">
+          <h3>${total}</h3>
+          <p>Total Transaksi</p>
+        </div>
+        <div class="stat-card">
+          <h3>${active}</h3>
+          <p>Sedang Dipinjam</p>
+        </div>
+        <div class="stat-card">
+          <h3>${completed}</h3>
+          <p>Selesai</p>
+        </div>
+        <div class="stat-card">
+          <h3>${items.length}</h3>
+          <p>Total Barang</p>
+        </div>
+      `;
+    }
+
+    // Export Approval to Excel
+    function exportApprovalToExcel() {
+      showLoading();
+      
+      setTimeout(() => {
+        try {
+          const data = borrowRequests.map((request, index) => ({
+            'No': index + 1,
+            'Nama Peminjam': request.userName,
+            'Barang': request.itemName,
+            'Jumlah': request.quantity,
+            'Tanggal Pengajuan': request.requestDate,
+            'Tanggal Peminjaman': request.borrowDate,
+            'Tanggal Pengembalian': request.returnDate,
+            'Keperluan': request.purpose || '-',
+            'Status': getStatusText(request.status)
+          }));
+
+          const ws = XLSX.utils.json_to_sheet(data);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Approval Peminjaman");
+
+          // Add header styling
+          const range = XLSX.utils.decode_range(ws['!ref']);
+          for (let C = range.s.c; C <= range.e.c; ++C) {
+            const address = XLSX.utils.encode_cell({ r: 0, c: C });
+            if (!ws[address]) continue;
+            ws[address].s = {
+              font: { bold: true },
+              fill: { fgColor: { rgb: "3498DB" } }
+            };
+          }
+
+          const fileName = `Approval_Peminjaman_${new Date().toISOString().split('T')[0]}.xlsx`;
+          XLSX.writeFile(wb, fileName);
+          
+          hideLoading();
+          alert('✅ File Excel berhasil didownload!');
+        } catch (error) {
+          hideLoading();
+          alert('❌ Terjadi kesalahan saat export Excel: ' + error.message);
+        }
+      }, 1000);
+    }
+
+    // Export Approval to PDF - Fixed version
+function exportApprovalToPDF() {
+  showLoading();
+  
+  setTimeout(() => {
+    try {
+      // Check if jsPDF is loaded
+      if (typeof window.jspdf === 'undefined') {
+        throw new Error('jsPDF library tidak berhasil dimuat. Silakan refresh halaman.');
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4');
+
+      // Header
+      doc.setFontSize(18);
+      doc.text('LAPORAN APPROVAL PEMINJAMAN', 148, 20, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Tanggal Export: ${new Date().toLocaleDateString('id-ID')}`, 148, 30, { align: 'center' });
+      doc.text(`Dicetak oleh: ${currentUser.name}`, 148, 37, { align: 'center' });
+
+      // Stats summary
+      const pending = borrowRequests.filter(r => r.status === 'pending').length;
+      const approved = borrowRequests.filter(r => r.status === 'approved').length;
+      const rejected = borrowRequests.filter(r => r.status === 'rejected').length;
+      
+      doc.setFontSize(10);
+      doc.text(`Total: ${borrowRequests.length} | Pending: ${pending} | Approved: ${approved} | Rejected: ${rejected}`, 20, 50);
+
+      // Table headers
+      const headers = ['No', 'Peminjam', 'Barang', 'Qty', 'Tgl Ajuan', 'Tgl Pinjam', 'Tgl Kembali', 'Status'];
+      let y = 60;
+      
+      doc.setFontSize(9);
+      headers.forEach((header, index) => {
+        const x = 20 + (index * 32);
+        doc.text(header, x, y);
+      });
+
+      // Table data
+      borrowRequests.forEach((request, index) => {
+        y += 8;
+        if (y > 180) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        const rowData = [
+          (index + 1).toString(),
+          (request.userName || '').substring(0, 12),
+          (request.itemName || '').substring(0, 12),
+          (request.quantity || 0).toString(),
+          request.requestDate || '',
+          request.borrowDate || '',
+          request.returnDate || '',
+          getStatusText(request.status)
+        ];
+        
+        rowData.forEach((data, colIndex) => {
+          const x = 20 + (colIndex * 32);
+          doc.text(data.toString(), x, y);
+        });
+      });
+
+      // Footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Halaman ${i} dari ${pageCount}`, 148, 200, { align: 'center' });
+        doc.text('Sistem Peminjaman Barang - PinjamSarana', 148, 205, { align: 'center' });
+      }
+
+      const fileName = `Approval_Peminjaman_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      hideLoading();
+      alert('✅ File PDF berhasil didownload!');
+    } catch (error) {
+      hideLoading();
+      console.error('Error exporting PDF:', error);
+      alert('❌ Terjadi kesalahan saat export PDF: ' + error.message + '\n\nSilakan coba refresh halaman dan coba lagi.');
+    }
+  }, 1000);
+}
+
+    // Export Return to Excel
+    function exportReturnToExcel() {
+      showLoading();
+      
+      setTimeout(() => {
+        try {
+          const data = returnRequests.map((request, index) => ({
+            'No': index + 1,
+            'Nama Peminjam': request.userName,
+            'Barang': request.itemName,
+            'Jumlah': request.quantity || '-',
+            'Tanggal Kembali': request.returnDate,
+            'Kondisi': request.condition,
+            'Catatan': request.notes || '-',
+            'Status': getStatusText(request.status)
+          }));
+
+          const ws = XLSX.utils.json_to_sheet(data);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Approval Pengembalian");
+
+          const fileName = `Approval_Pengembalian_${new Date().toISOString().split('T')[0]}.xlsx`;
+          XLSX.writeFile(wb, fileName);
+          
+          hideLoading();
+          alert('✅ File Excel berhasil didownload!');
+        } catch (error) {
+          hideLoading();
+          alert('❌ Terjadi kesalahan saat export Excel: ' + error.message);
+        }
+      }, 1000);
+    }
+
+    // Export Return to PDF - Fixed version
+function exportReturnToPDF() {
+  showLoading();
+  
+  setTimeout(() => {
+    try {
+      if (typeof window.jspdf === 'undefined') {
+        throw new Error('jsPDF library tidak berhasil dimuat. Silakan refresh halaman.');
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4');
+
+      // Header
+      doc.setFontSize(18);
+      doc.text('LAPORAN APPROVAL PENGEMBALIAN', 148, 20, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Tanggal Export: ${new Date().toLocaleDateString('id-ID')}`, 148, 30, { align: 'center' });
+      doc.text(`Dicetak oleh: ${currentUser.name}`, 148, 37, { align: 'center' });
+
+      // Stats
+      const pending = returnRequests.filter(r => r.status === 'pending').length;
+      const approved = returnRequests.filter(r => r.status === 'approved').length;
+      
+      doc.setFontSize(10);
+      doc.text(`Total: ${returnRequests.length} | Pending: ${pending} | Approved: ${approved}`, 20, 50);
+
+      // Table
+      const headers = ['No', 'Peminjam', 'Barang', 'Tgl Kembali', 'Kondisi', 'Status'];
+      let y = 60;
+      
+      doc.setFontSize(9);
+      headers.forEach((header, index) => {
+        const x = 20 + (index * 40);
+        doc.text(header, x, y);
+      });
+
+      returnRequests.forEach((request, index) => {
+        y += 8;
+        if (y > 180) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        const rowData = [
+          (index + 1).toString(),
+          (request.userName || '').substring(0, 15),
+          (request.itemName || '').substring(0, 15),
+          request.returnDate || '',
+          request.condition || '',
+          getStatusText(request.status)
+        ];
+        
+        rowData.forEach((data, colIndex) => {
+          const x = 20 + (colIndex * 40);
+          doc.text(data.toString(), x, y);
+        });
+      });
+
+      const fileName = `Approval_Pengembalian_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      hideLoading();
+      alert('✅ File PDF berhasil didownload!');
+    } catch (error) {
+      hideLoading();
+      console.error('Error exporting PDF:', error);
+      alert('❌ Terjadi kesalahan saat export PDF: ' + error.message + '\n\nSilakan coba refresh halaman dan coba lagi.');
+    }
+  }, 1000);
+}
+
+    // Export Recap to Excel
+    function exportRekapToExcel() {
+      showLoading();
+      
+      setTimeout(() => {
+        try {
+          const allData = [...borrowRequests, ...borrowHistory].map((item, index) => ({
+            'No': index + 1,
+            'Nama Peminjam': item.userName,
+            'Barang': item.itemName,
+            'Jumlah': item.quantity,
+            'Tanggal Peminjaman': item.borrowDate || item.requestDate,
+            'Tanggal Pengembalian': item.actualReturnDate || item.returnDate || '-',
+            'Status': getStatusText(item.status),
+            'Keperluan': item.purpose || '-'
+          }));
+
+          const ws = XLSX.utils.json_to_sheet(allData);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Rekapan Peminjaman");
+
+          const fileName = `Rekapan_Peminjaman_${new Date().toISOString().split('T')[0]}.xlsx`;
+          XLSX.writeFile(wb, fileName);
+          
+          hideLoading();
+          alert('✅ File Excel berhasil didownload!');
+        } catch (error) {
+          hideLoading();
+          alert('❌ Terjadi kesalahan saat export Excel: ' + error.message);
+        }
+      }, 1000);
+    }
+
+    // Export Recap to PDF - Fixed version
+function exportRekapToPDF() {
+  showLoading();
+  
+  setTimeout(() => {
+    try {
+      if (typeof window.jspdf === 'undefined') {
+        throw new Error('jsPDF library tidak berhasil dimuat. Silakan refresh halaman.');
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4');
+
+      // Header
+      doc.setFontSize(18);
+      doc.text('REKAPAN PEMINJAMAN BARANG', 148, 20, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Periode: ${new Date().toLocaleDateString('id-ID')}`, 148, 30, { align: 'center' });
+      doc.text(`Dicetak oleh: ${currentUser.name}`, 148, 37, { align: 'center' });
+
+      // Stats
+      const allData = [...borrowRequests, ...borrowHistory];
+      const active = borrowHistory.filter(h => h.status === 'active').length;
+      const completed = borrowHistory.filter(h => h.status === 'completed').length;
+      
+      doc.setFontSize(10);
+      doc.text(`Total Transaksi: ${allData.length} | Aktif: ${active} | Selesai: ${completed}`, 20, 50);
+
+      // Table
+      const headers = ['No', 'Peminjam', 'Barang', 'Tgl Pinjam', 'Tgl Kembali', 'Status'];
+      let y = 60;
+      
+      doc.setFontSize(9);
+      headers.forEach((header, index) => {
+        const x = 20 + (index * 40);
+        doc.text(header, x, y);
+      });
+
+      allData.forEach((item, index) => {
+        y += 8;
+        if (y > 180) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        const rowData = [
+          (index + 1).toString(),
+          (item.userName || '').substring(0, 15),
+          (item.itemName || '').substring(0, 15),
+          item.borrowDate || item.requestDate || '',
+          item.actualReturnDate || item.returnDate || '-',
+          getStatusText(item.status)
+        ];
+        
+        rowData.forEach((data, colIndex) => {
+          const x = 20 + (colIndex * 40);
+          doc.text(data.toString(), x, y);
+        });
+      });
+
+      const fileName = `Rekapan_Peminjaman_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      hideLoading();
+      alert('✅ File PDF berhasil didownload!');
+    } catch (error) {
+      hideLoading();
+      console.error('Error exporting PDF:', error);
+      alert('❌ Terjadi kesalahan saat export PDF: ' + error.message + '\n\nSilakan coba refresh halaman dan coba lagi.');
+    }
+  }, 1000);
+}
+
+    // Export Full Report (All data in one Excel file)
+    function exportFullReport() {
+      showLoading();
+      
+      setTimeout(() => {
+        try {
+          const wb = XLSX.utils.book_new();
+
+          // Sheet 1: Approval Peminjaman
+          const approvalData = borrowRequests.map((request, index) => ({
+            'No': index + 1,
+            'Nama Peminjam': request.userName,
+            'Barang': request.itemName,
+            'Jumlah': request.quantity,
+            'Tanggal Pengajuan': request.requestDate,
+            'Tanggal Peminjaman': request.borrowDate,
+            'Tanggal Pengembalian': request.returnDate,
+            'Keperluan': request.purpose || '-',
+            'Status': getStatusText(request.status)
+          }));
+          const ws1 = XLSX.utils.json_to_sheet(approvalData);
+          XLSX.utils.book_append_sheet(wb, ws1, "Approval Peminjaman");
+
+          // Sheet 2: Approval Pengembalian
+          const returnData = returnRequests.map((request, index) => ({
+            'No': index + 1,
+            'Nama Peminjam': request.userName,
+            'Barang': request.itemName,
+            'Tanggal Kembali': request.returnDate,
+            'Kondisi': request.condition,
+            'Catatan': request.notes || '-',
+            'Status': getStatusText(request.status)
+          }));
+          const ws2 = XLSX.utils.json_to_sheet(returnData);
+          XLSX.utils.book_append_sheet(wb, ws2, "Approval Pengembalian");
+
+          // Sheet 3: Rekapan
+          const rekapData = [...borrowRequests, ...borrowHistory].map((item, index) => ({
+            'No': index + 1,
+            'Nama Peminjam': item.userName,
+            'Barang': item.itemName,
+            'Jumlah': item.quantity,
+            'Tanggal Peminjaman': item.borrowDate || item.requestDate,
+            'Tanggal Pengembalian': item.actualReturnDate || item.returnDate || '-',
+            'Status': getStatusText(item.status)
+          }));
+          const ws3 = XLSX.utils.json_to_sheet(rekapData);
+          XLSX.utils.book_append_sheet(wb, ws3, "Rekapan Lengkap");
+
+          // Sheet 4: Data Barang
+          const itemsData = items.map((item, index) => ({
+            'No': index + 1,
+            'Nama Barang': item.name,
+            'Jumlah Tersedia': item.quantity,
+            'Kondisi': item.condition,
+            'Kategori': item.category
+          }));
+          const ws4 = XLSX.utils.json_to_sheet(itemsData);
+          XLSX.utils.book_append_sheet(wb, ws4, "Data Barang");
+
+          const fileName = `Laporan_Lengkap_${new Date().toISOString().split('T')[0]}.xlsx`;
+          XLSX.writeFile(wb, fileName);
+          
+          hideLoading();
+          alert('✅ Laporan lengkap berhasil didownload!');
+        } catch (error) {
+          hideLoading();
+          alert('❌ Terjadi kesalahan saat export laporan: ' + error.message);
+        }
+      }, 1500);
+    }
+
+    // Render items table
+    function renderItemsTable() {
+      const tbody = document.getElementById('itemsTableBody');
+      tbody.innerHTML = '';
+      
+      items.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${item.name}</td>
+          <td>${item.quantity}</td>
+          <td>${item.condition}</td>
+          <td>${item.category}</td>
+          <td>
+            <button onclick="showAddItemModal(${item.id})" class="btn btn-warning">Edit</button>
+            <button onclick="deleteItem(${item.id})" class="btn btn-danger">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Render approval table
+    function renderApprovalTable() {
+      const tbody = document.getElementById('approvalTableBody');
+      tbody.innerHTML = '';
+      
+      borrowRequests.forEach((request, index) => {
+        const row = document.createElement('tr');
+        let statusClass = '';
+        let actionButtons = '';
+        
+        switch(request.status) {
+          case 'pending':
+            statusClass = 'status-pending';
+            actionButtons = `
+              <button class="btn btn-success" onclick="approveRequest(${request.id})">Setujui</button>
+              <button class="btn btn-danger" onclick="rejectRequest(${request.id})">Tolak</button>
+              <button class="btn btn-warning" onclick="deleteBorrowRequest(${request.id})">🗑️ Hapus</button>
+            `;
+            break;
+          case 'approved':
+            statusClass = 'status-approved';
+            actionButtons = `<button class="btn btn-warning" onclick="deleteBorrowRequest(${request.id})">🗑️ Hapus</button>`;
+            break;
+          case 'rejected':
+            statusClass = 'status-rejected';
+            actionButtons = `<button class="btn btn-warning" onclick="deleteBorrowRequest(${request.id})">🗑️ Hapus</button>`;
+            break;
+        }
+        
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${request.userName}</td>
+          <td>${request.itemName}</td>
+          <td>${request.quantity}</td>
+          <td>${request.requestDate}</td>
+          <td>${request.borrowDate}</td>
+          <td>${request.returnDate}</td>
+          <td>${request.purpose || '-'}</td>
+          <td><span class="status-badge ${statusClass}">${getStatusText(request.status)}</span></td>
+          <td>${actionButtons}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Render return table
+    function renderReturnTable() {
+      const tbody = document.getElementById('returnTableBody');
+      tbody.innerHTML = '';
+      
+      returnRequests.forEach((request, index) => {
+        const row = document.createElement('tr');
+        let actionButtons = '';
+        
+        if (request.status === 'pending') {
+          actionButtons = `
+            <button class="btn btn-success" onclick="approveReturn(${request.id})">Verifikasi</button>
+            <button class="btn btn-danger" onclick="rejectReturn(${request.id})">Tolak</button>
+            <button class="btn btn-warning" onclick="deleteReturnRequest(${request.id})">🗑️ Hapus</button>
+          `;
+        } else {
+          actionButtons = `<button class="btn btn-warning" onclick="deleteReturnRequest(${request.id})">🗑️ Hapus</button>`;
+        }
+        
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${request.userName}</td>
+          <td>${request.itemName}</td>
+          <td>${request.returnDate}</td>
+          <td>${request.condition}</td>
+          <td>${request.notes || '-'}</td>
+          <td><span class="status-badge status-${request.status}">${getStatusText(request.status)}</span></td>
+          <td>${actionButtons}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Render recap table
+    function renderRekapTable() {
+      const tbody = document.getElementById('rekapTableBody');
+      tbody.innerHTML = '';
+      
+      const allData = [...borrowRequests, ...borrowHistory];
+      
+      allData.forEach((history, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${history.userName}</td>
+          <td>${history.itemName}</td>
+          <td>${history.borrowDate || history.requestDate}</td>
+          <td>${history.actualReturnDate || history.returnDate || '-'}</td>
+          <td><span class="status-badge status-${history.status}">${getStatusText(history.status)}</span></td>
+          <td><button class="btn btn-warning" onclick="deleteRekapEntry('${history.id || index}', '${history.userName}', '${history.itemName}')">🗑️ Hapus</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Render users table
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = '';
+      
+      users.forEach((user, index) => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${user.name}</td>
+          <td>${user.username}</td>
+          <td>${user.email}</td>
+          <td>${new Date(user.createdAt).toLocaleDateString('id-ID')}</td>
+          <td><span class="status-badge status-approved">Aktif</span></td>
+          <td>
+            <button onclick="deleteUser(${user.id})" class="btn btn-danger">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Show add item modal
+    function showAddItemModal(editItemId = null) {
+      const modal = document.getElementById('itemModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const form = document.getElementById('itemForm');
+      
+      if (editItemId) {
+        modalTitle.textContent = "Edit Barang";
+        const item = items.find(item => item.id == editItemId);
+        document.getElementById('itemId').value = item.id;
+        document.getElementById('itemName').value = item.name;
+        document.getElementById('itemQuantity').value = item.quantity;
+        document.getElementById('itemCondition').value = item.condition;
+        document.getElementById('itemCategory').value = item.category;
+      } else {
+        modalTitle.textContent = "Tambah Barang";
+        form.reset();
+        document.getElementById('itemId').value = '';
+      }
+      
+      modal.classList.add('show');
+    }
+
+    // Close modal
+    function closeModal() {
+      document.getElementById('itemModal').classList.remove('show');
+    }
+
+    // Handle item form submit
+    document.getElementById('itemForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const id = document.getElementById('itemId').value;
+      const name = document.getElementById('itemName').value;
+      const quantity = parseInt(document.getElementById('itemQuantity').value);
+      const condition = document.getElementById('itemCondition').value;
+      const category = document.getElementById('itemCategory').value;
+      
+      if (id) {
+        // Edit existing item
+        const index = items.findIndex(item => item.id == id);
+        items[index] = { id: parseInt(id), name, quantity, condition, category };
+        alert('Barang berhasil diperbarui!');
+      } else {
+        // Add new item
+        const newId = items.length > 0 ? Math.max(...items.map(item => item.id)) + 1 : 1;
+        items.push({ id: newId, name, quantity, condition, category });
+        alert('Barang berhasil ditambahkan!');
+      }
+      
+      saveData();
+      renderItemsTable();
+      closeModal();
+    });
+
+    // Delete item
+    function deleteItem(id) {
+      if (confirm('Apakah Anda yakin ingin menghapus barang ini?')) {
+        items = items.filter(item => item.id != id);
+        saveData();
+        renderItemsTable();
+        alert('Barang berhasil dihapus!');
+      }
+    }
+
+    // Delete user
+    function deleteUser(userId) {
+      if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
+        users = users.filter(user => user.id !== userId);
+        saveData();
+        renderUsersTable();
+        alert('User berhasil dihapus!');
+      }
+    }
+
+    // Approve request
+    function approveRequest(id) {
+      const request = borrowRequests.find(req => req.id === id);
+      if (request) {
+        // Check item availability
+        const item = items.find(item => item.name === request.itemName);
+        if (item && item.quantity >= request.quantity) {
+          request.status = 'approved';
+          item.quantity -= request.quantity;
+          
+          // Move to history
+          borrowHistory.push({
+            id: Date.now(),
+            userName: request.userName,
+            itemName: request.itemName,
+            quantity: request.quantity,
+            borrowDate: request.borrowDate,
+            returnDate: request.returnDate,
+            status: 'active'
+          });
+          
+          saveData();
+          alert(`Peminjaman ${request.itemName} oleh ${request.userName} telah disetujui!`);
+          renderApprovalTable();
+          renderApprovalStats();
+          renderItemsTable();
+        } else {
+          alert('Stok barang tidak mencukupi!');
+        }
+      }
+    }
+
+    // Reject request
+    function rejectRequest(id) {
+      const request = borrowRequests.find(req => req.id === id);
+      if (request) {
+        request.status = 'rejected';
+        saveData();
+        alert(`Peminjaman ${request.itemName} oleh ${request.userName} telah ditolak!`);
+        renderApprovalTable();
+        renderApprovalStats();
+      }
+    }
+
+    // Delete borrow request
+function deleteBorrowRequest(id) {
+  if (confirm('Apakah Anda yakin ingin menghapus data peminjaman ini?')) {
+    borrowRequests = borrowRequests.filter(req => req.id !== id);
+    saveData();
+    alert('Data peminjaman berhasil dihapus!');
+    renderApprovalTable();
+    renderApprovalStats();
+  }
+}
+
+    // Approve return
+    function approveReturn(id) {
+      const request = returnRequests.find(req => req.id === id);
+      if (request) {
+        request.status = 'approved';
+        
+        // Return item stock
+        const item = items.find(item => item.name === request.itemName);
+        if (item) {
+          item.quantity += request.quantity;
+        }
+        
+        // Update status in history
+        const historyItem = borrowHistory.find(h => h.userName === request.userName && h.itemName === request.itemName && h.status === 'active');
+        if (historyItem) {
+          historyItem.status = 'completed';
+          historyItem.actualReturnDate = request.returnDate;
+        }
+        
+        saveData();
+        alert('Pengembalian telah diverifikasi!');
+        renderReturnTable();
+        renderReturnStats();
+        renderItemsTable();
+      }
+    }
+
+    // Reject return
+    function rejectReturn(id) {
+      const request = returnRequests.find(req => req.id === id);
+      if (request) {
+        request.status = 'rejected';
+        saveData();
+        alert('Pengembalian ditolak!');
+        renderReturnTable();
+        renderReturnStats();
+      }
+    }
+
+    // Delete return request
+function deleteReturnRequest(id) {
+  if (confirm('Apakah Anda yakin ingin menghapus data pengembalian ini?')) {
+    returnRequests = returnRequests.filter(req => req.id !== id);
+    saveData();
+    alert('Data pengembalian berhasil dihapus!');
+    renderReturnTable();
+    renderReturnStats();
+  }
+}
+
+// Delete recap entry
+function deleteRekapEntry(entryId, userName, itemName) {
+  if (confirm(`Apakah Anda yakin ingin menghapus data ${itemName} oleh ${userName}?`)) {
+    // Remove from borrowRequests if exists
+    borrowRequests = borrowRequests.filter(req => 
+      !(req.userName === userName && req.itemName === itemName)
+    );
+    
+    // Remove from borrowHistory if exists
+    borrowHistory = borrowHistory.filter(hist => 
+      !(hist.userName === userName && hist.itemName === itemName)
+    );
+    
+    saveData();
+    alert('Data rekapan berhasil dihapus!');
+    renderRekapTable();
+    renderRekapStats();
+    
+    // Refresh other sections if currently viewing them
+    const currentSection = document.querySelector('main > section:not(.hidden)').id;
+    if (currentSection === 'approvalPeminjaman') {
+      renderApprovalTable();
+      renderApprovalStats();
+    }
+  }
+}
+
+// Clean undefined data
+function cleanUndefinedData(type) {
+  let deletedCount = 0;
+  
+  if (type === 'borrow' || type === 'recap') {
+    const beforeCount = borrowRequests.length;
+    borrowRequests = borrowRequests.filter(req => 
+      req.userName && req.userName !== 'undefined' && req.userName.trim() !== ''
+    );
+    deletedCount += beforeCount - borrowRequests.length;
+  }
+  
+  if (type === 'return' || type === 'recap') {
+    const beforeCount = returnRequests.length;
+    returnRequests = returnRequests.filter(req => 
+      req.userName && req.userName !== 'undefined' && req.userName.trim() !== ''
+    );
+    deletedCount += beforeCount - returnRequests.length;
+  }
+  
+  if (type === 'recap') {
+    const beforeCount = borrowHistory.length;
+    borrowHistory = borrowHistory.filter(hist => 
+      hist.userName && hist.userName !== 'undefined' && hist.userName.trim() !== ''
+    );
+    deletedCount += beforeCount - borrowHistory.length;
+  }
+  
+  if (deletedCount > 0) {
+    saveData();
+    alert(`✅ Berhasil menghapus ${deletedCount} data dengan nama undefined!`);
+    
+    // Refresh current section
+    const currentSection = document.querySelector('main > section:not(.hidden)').id;
+    showSection(currentSection);
+  } else {
+    alert('ℹ️ Tidak ada data undefined yang ditemukan.');
+  }
+}
+
+    // Helper function for status text
+    function getStatusText(status) {
+      switch(status) {
+        case 'pending': return 'Menunggu';
+        case 'approved': return 'Disetujui';
+        case 'rejected': return 'Ditolak';
+        case 'active': return 'Aktif';
+        case 'completed': return 'Selesai';
+        default: return status;
+      }
+    }
+
+    // Logout function
+    function logout() {
+      if (confirm('Apakah Anda yakin ingin keluar?')) {
+        localStorage.removeItem('loggedInUser');
+        alert('Anda telah logout!');
+        window.location.href = 'login.html';
+      }
+    }
+
+    // Dashboard functions
+    function renderDashboard() {
+      renderDashboardStats();
+      renderDashboardCharts();
+      renderRecentActivities();
+      renderAttentionItems();
+      renderQuickActions();
+    }
+
+    function renderDashboardStats() {
+      // Total items stats
+      const totalItems = items.length;
+      const availableItems = items.filter(item => item.quantity > 0 && item.condition === 'Baik').length;
+      
+      // Borrowing stats
+      const allBorrows = [...borrowRequests, ...borrowHistory];
+      const activeBorrows = borrowHistory.filter(h => h.status === 'active').length;
+      
+      // Approval stats
+      const pendingApprovals = borrowRequests.filter(r => r.status === 'pending').length;
+      const pendingReturns = returnRequests.filter(r => r.status === 'pending').length;
+      
+      // User stats
+      const totalUsers = users.length;
+      const activeUsers = users.length; // All registered users are considered active
+      
+      // Update DOM
+      document.getElementById('totalItemsCount').textContent = totalItems;
+      document.getElementById('availableItemsCount').textContent = `${availableItems} Tersedia`;
+      
+      document.getElementById('totalBorrowsCount').textContent = allBorrows.length;
+      document.getElementById('activeBorrowsCount').textContent = `${activeBorrows} Aktif`;
+      
+      document.getElementById('pendingApprovalsCount').textContent = pendingApprovals;
+      document.getElementById('pendingReturnsCount').textContent = `${pendingReturns} Pengembalian`;
+      
+      document.getElementById('totalUsersCount').textContent = totalUsers;
+      document.getElementById('activeUsersCount').textContent = `${activeUsers} Aktif`;
+    }
+
+    function renderDashboardCharts() {
+      // Borrow Status Chart
+      const borrowStatusCtx = document.getElementById('borrowStatusChart').getContext('2d');
+  
+  const pendingCount = borrowRequests.filter(r => r.status === 'pending').length;
+  const approvedCount = borrowRequests.filter(r => r.status === 'approved').length;
+  const rejectedCount = borrowRequests.filter(r => r.status === 'rejected').length;
+  const activeCount = borrowHistory.filter(h => h.status === 'active').length;
+  const completedCount = borrowHistory.filter(h => h.status === 'completed').length;
+  
+  new Chart(borrowStatusCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Pending', 'Approved', 'Rejected', 'Active', 'Completed'],
+      datasets: [{
+        data: [pendingCount, approvedCount, rejectedCount, activeCount, completedCount],
+        backgroundColor: [
+          '#f39c12',
+          '#27ae60',
+          '#e74c3c',
+          '#3498db',
+          '#95a5a6'
+        ],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+  
+  // Monthly Trend Chart
+  const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+  
+  // Generate last 6 months data
+  const months = [];
+  const borrowData = [];
+  const returnData = [];
+  
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    const monthName = date.toLocaleDateString('id-ID', { month: 'short' });
+    months.push(monthName);
+    
+    // Count borrows and returns for this month
+    const monthBorrows = borrowRequests.filter(r => {
+      const requestDate = new Date(r.requestDate);
+      return requestDate.getMonth() === date.getMonth() && requestDate.getFullYear() === date.getFullYear();
+    }).length;
+    
+    const monthReturns = returnRequests.filter(r => {
+      const returnDate = new Date(r.returnDate);
+      return returnDate.getMonth() === date.getMonth() && returnDate.getFullYear() === date.getFullYear();
+    }).length;
+    
+    borrowData.push(monthBorrows);
+    returnData.push(monthReturns);
+  }
+  
+  new Chart(monthlyTrendCtx, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'Peminjaman',
+          data: borrowData,
+          borderColor: '#3498db',
+          backgroundColor: 'rgba(52, 152, 219, 0.1)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: 'Pengembalian',
+          data: returnData,
+          borderColor: '#27ae60',
+          backgroundColor: 'rgba(39, 174, 96, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderRecentActivities() {
+  const container = document.getElementById('recentActivitiesList');
+  container.innerHTML = '';
+  
+  // Combine all activities
+  const activities = [
+    ...borrowRequests.map(r => ({
+      type: 'borrow_request',
+      title: `Pengajuan peminjaman ${r.itemName}`,
+      subtitle: `oleh ${r.userName}`,
+      time: r.requestDate,
+      status: r.status
+    })),
+    ...returnRequests.map(r => ({
+      type: 'return_request',
+      title: `Pengembalian ${r.itemName}`,
+      subtitle: `oleh ${r.userName}`,
+      time: r.returnDate,
+      status: r.status
+    }))
+  ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 5);
+  
+  if (activities.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">Belum ada aktivitas</p>';
+    return;
+  }
+  
+  activities.forEach(activity => {
+    const activityDiv = document.createElement('div');
+    activityDiv.className = 'activity-item';
+    
+    let iconClass = 'info';
+    let iconSymbol = '📋';
+    
+    if (activity.type === 'borrow_request') {
+      iconSymbol = '📤';
+      iconClass = activity.status === 'pending' ? 'warning' : activity.status === 'approved' ? 'success' : 'danger';
+    } else if (activity.type === 'return_request') {
+      iconSymbol = '📥';
+      iconClass = activity.status === 'pending' ? 'warning' : activity.status === 'approved' ? 'success' : 'danger';
+    }
+    
+    activityDiv.innerHTML = `
+      <div class="activity-icon ${iconClass}">${iconSymbol}</div>
+      <div class="activity-content">
+        <div class="title">${activity.title}</div>
+        <div class="subtitle">${activity.subtitle}</div>
+      </div>
+      <div class="activity-time">${new Date(activity.time).toLocaleDateString('id-ID')}</div>
+    `;
+    
+    container.appendChild(activityDiv);
+  });
+}
+
+function renderAttentionItems() {
+  const container = document.getElementById('attentionList');
+  container.innerHTML = '';
+  
+  const attentionItems = [];
+  
+  // Low stock items
+  const lowStockItems = items.filter(item => item.quantity <= 2 && item.quantity > 0);
+  lowStockItems.forEach(item => {
+    attentionItems.push({
+      title: `Stok ${item.name} hampir habis`,
+      subtitle: `Tersisa ${item.quantity} unit`,
+      type: 'warning',
+      icon: '⚠️'
+    });
+  });
+  
+  // Out of stock items
+  const outOfStockItems = items.filter(item => item.quantity === 0);
+  outOfStockItems.forEach(item => {
+    attentionItems.push({
+      title: `${item.name} habis`,
+      subtitle: 'Perlu restok segera',
+      type: 'danger',
+      icon: '🚫'
+    });
+  });
+  
+  // Pending approvals
+  const pendingApprovals = borrowRequests.filter(r => r.status === 'pending').length;
+  if (pendingApprovals > 0) {
+    attentionItems.push({
+      title: `${pendingApprovals} pengajuan menunggu`,
+      subtitle: 'Perlu approval segera',
+      type: 'warning',
+      icon: '⏳'
+    });
+  }
+  
+  // Pending returns
+  const pendingReturns = returnRequests.filter(r => r.status === 'pending').length;
+  if (pendingReturns > 0) {
+    attentionItems.push({
+      title: `${pendingReturns} pengembalian menunggu`,
+      subtitle: 'Perlu verifikasi',
+      type: 'info',
+      icon: '🔄'
+    });
+  }
+  
+  if (attentionItems.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #27ae60; padding: 20px;">✅ Semua dalam kondisi baik</p>';
+    return;
+  }
+  
+  attentionItems.slice(0, 5).forEach(item => {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'activity-item';
+    
+    itemDiv.innerHTML = `
+      <div class="activity-icon ${item.type}">${item.icon}</div>
+      <div class="activity-content">
+        <div class="title">${item.title}</div>
+        <div class="subtitle">${item.subtitle}</div>
+      </div>
+    `;
+    
+    container.appendChild(itemDiv);
+  });
+}
+
+function renderQuickActions() {
+  const pendingApprovals = borrowRequests.filter(r => r.status === 'pending').length;
+  const pendingReturns = returnRequests.filter(r => r.status === 'pending').length;
+  const totalItems = items.length;
+  const totalTransactions = borrowRequests.length + borrowHistory.length;
+  
+  document.getElementById('quickPendingCount').textContent = pendingApprovals;
+  document.getElementById('quickReturnCount').textContent = pendingReturns;
+  document.getElementById('quickItemsCount').textContent = totalItems;
+  document.getElementById('quickRekapCount').textContent = totalTransactions;
+}
+
+// Export Dashboard functions
+function exportDashboardToPDF() {
+  showLoading();
+  
+  setTimeout(() => {
+    try {
+      if (typeof window.jspdf === 'undefined') {
+        throw new Error('jsPDF library tidak berhasil dimuat. Silakan refresh halaman.');
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+
+      // Header
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text('DASHBOARD OVERVIEW', 105, 20, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 105, 30, { align: 'center' });
+      doc.text(`Admin: ${currentUser.name}`, 105, 37, { align: 'center' });
+
+      // Statistics
+      let y = 50;
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('STATISTIK UTAMA', 20, y);
+      
+      y += 10;
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      
+      const stats = [
+        `Total Barang: ${items.length}`,
+        `Total Peminjaman: ${borrowRequests.length + borrowHistory.length}`,
+        `Menunggu Approval: ${borrowRequests.filter(r => r.status === 'pending').length}`,
+        `Total User: ${users.length}`,
+        `Peminjaman Aktif: ${borrowHistory.filter(h => h.status === 'active').length}`,
+        `Pengembalian Pending: ${returnRequests.filter(r => r.status === 'pending').length}`
+      ];
+      
+      stats.forEach(stat => {
+        doc.text(stat, 20, y);
+        y += 7;
+      });
+
+      // Recent Activities
+      y += 10;
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('AKTIVITAS TERBARU', 20, y);
+      
+      y += 10;
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      
+      const recentActivities = [
+        ...borrowRequests.slice(-5).map(r => `${r.requestDate}: Pengajuan ${r.itemName} oleh ${r.userName}`),
+        ...returnRequests.slice(-5).map(r => `${r.returnDate}: Pengembalian ${r.itemName} oleh ${r.userName}`)
+      ].slice(-8);
+      
+      recentActivities.forEach(activity => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(activity, 20, y);
+        y += 7;
+      });
+
+      // Footer
+      doc.setFontSize(8);
+      doc.text('Dashboard - Sistem Peminjaman Barang PinjamSarana', 105, 290, { align: 'center' });
+
+      const fileName = `Dashboard_Overview_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      hideLoading();
+      alert('✅ Dashboard PDF berhasil didownload!');
+    } catch (error) {
+      hideLoading();
+      console.error('Error exporting PDF:', error);
+      alert('❌ Terjadi kesalahan saat export PDF: ' + error.message + '\n\nSilakan coba refresh halaman dan coba lagi.');
+    }
+  }, 1000);
+}
+
+function exportDashboardToExcel() {
+  showLoading();
+  
+  setTimeout(() => {
+    try {
+      const wb = XLSX.utils.book_new();
+
+      // Dashboard Stats Sheet
+      const statsData = [
+        ['Metrik', 'Nilai'],
+        ['Total Barang', items.length],
+        ['Barang Tersedia', items.filter(item => item.quantity > 0 && item.condition === 'Baik').length],
+        ['Total Peminjaman', borrowRequests.length + borrowHistory.length],
+        ['Peminjaman Aktif', borrowHistory.filter(h => h.status === 'active').length],
+        ['Menunggu Approval', borrowRequests.filter(r => r.status === 'pending').length],
+        ['Pengembalian Pending', returnRequests.filter(r => r.status === 'pending').length],
+        ['Total User', users.length],
+        ['Tanggal Export', new Date().toLocaleDateString('id-ID')]
+      ];
+      
+      const ws1 = XLSX.utils.aoa_to_sheet(statsData);
+      XLSX.utils.book_append_sheet(wb, ws1, "Dashboard Stats");
+
+      // Recent Activities Sheet
+      const activitiesData = [
+        ['Tanggal', 'Jenis', 'Deskripsi', 'User', 'Status'],
+        ...borrowRequests.slice(-10).map(r => [
+          r.requestDate,
+          'Pengajuan Peminjaman',
+          r.itemName,
+          r.userName,
+          r.status
+        ]),
+        ...returnRequests.slice(-10).map(r => [
+          r.returnDate,
+          'Pengembalian',
+          r.itemName,
+          r.userName,
+          r.status
+        ])
+      ];
+      
+      const ws2 = XLSX.utils.aoa_to_sheet(activitiesData);
+      XLSX.utils.book_append_sheet(wb, ws2, "Recent Activities");
+
+      const fileName = `Dashboard_Overview_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      
+      hideLoading();
+      alert('✅ Dashboard Excel berhasil didownload!');
+    } catch (error) {
+      hideLoading();
+      alert('❌ Terjadi kesalahan saat export Excel: ' + error.message);
+    }
+  }, 1000);
+}
+
+// Check libraries on page load
+function checkLibraries() {
+  const missingLibraries = [];
+  
+  if (typeof window.jspdf === 'undefined') {
+    missingLibraries.push('jsPDF');
+  }
+  
+  if (typeof XLSX === 'undefined') {
+    missingLibraries.push('SheetJS');
+  }
+  
+  if (typeof Chart === 'undefined') {
+    missingLibraries.push('Chart.js');
+  }
+  
+  if (missingLibraries.length > 0) {
+    console.warn('Missing libraries:', missingLibraries);
+    alert(`⚠️ Beberapa library tidak berhasil dimuat: ${missingLibraries.join(', ')}\n\nSilakan refresh halaman untuk mencoba lagi.`);
+    return false;
+  }
+  
+  return true;
+}
+
+// Update the window load event listener
+window.addEventListener('DOMContentLoaded', function() {
+  if (checkAuth()) {
+    loadData();
+    
+    // Check if libraries are loaded
+    setTimeout(() => {
+      if (checkLibraries()) {
+        showSection('dashboard');
+      }
+    }, 1000);
+  }
+});
+  </script>
+</body>
+</html>

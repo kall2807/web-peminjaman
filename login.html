@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Sistem Peminjaman Barang</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+    }
+
+    .logo {
+      margin-bottom: 30px;
+    }
+
+    .logo h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .logo p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e1e5e9;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px;
+      background: #f8f9fa;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .tab.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      margin-bottom: 20px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .alert-error {
+      background-color: #fee;
+      color: #c33;
+      border: 1px solid #fcc;
+    }
+
+    .alert-success {
+      background-color: #efe;
+      color: #363;
+      border: 1px solid #cfc;
+    }
+
+    .info-card {
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    .admin-info {
+      background: #e3f2fd;
+      border: 1px solid #bbdefb;
+    }
+
+    .user-info {
+      background: #e8f5e8;
+      border: 1px solid #c8e6c9;
+    }
+
+    .info-card h4 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .info-card p {
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .credentials {
+      font-size: 12px;
+      background: rgba(255,255,255,0.7);
+      padding: 8px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    .register-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .register-link:hover {
+      text-decoration: underline;
+    }
+
+    .divider {
+      margin: 20px 0;
+      position: relative;
+      text-align: center;
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #e1e5e9;
+    }
+
+    .divider span {
+      background: white;
+      padding: 0 15px;
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">
+      <h1>📦 PinjamSarana</h1>
+      <p>Sistem Peminjaman Sarana & Prasarana</p>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <!-- Login Tab -->
+    <div id="login-tab" class="tab-content active">
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" class="form-control" required placeholder="Masukkan username" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-control" required placeholder="Masukkan password" />
+        </div>
+
+        <button type="submit" class="btn" id="loginBtn">Masuk</button>
+      </form>
+
+      <div class="divider">
+        <span>atau</span>
+      </div>
+      <p>Belum punya akun user? <a href="register.html" class="register-link">Daftar di sini</a></p>
+      <p><a href="index.html" class="register-link">kembali ke beranda</a></p>
+    </div>
+  </div>
+
+  <script>
+    // Switch between tabs
+    function switchTab(tabName) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+
+      // Remove active class from all tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Show selected tab content
+      document.getElementById(tabName + '-tab').classList.add('active');
+
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+    }
+
+    // Show alert function
+    function showAlert(message, type = 'error') {
+      const alertContainer = document.getElementById('alertContainer');
+      alertContainer.innerHTML = `
+        <div class="alert alert-${type}">
+          ${message}
+        </div>
+      `;
+
+      setTimeout(() => {
+        alertContainer.innerHTML = '';
+      }, 5000);
+    }
+
+    // Initialize default users if not exists
+    function initializeUsers() {
+      const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+
+      // Add demo user if not exists
+      const demoUserExists = users.find(u => u.username === 'user');
+      if (!demoUserExists) {
+        users.push({
+          id: 1,
+          name: 'User Demo',
+          username: 'user',
+          password: 'user123',
+          email: 'user@demo.com',
+          role: 'user',
+          createdAt: new Date().toISOString(),
+        });
+        localStorage.setItem('registeredUsers', JSON.stringify(users));
+      }
+    }
+
+    // Login function with admin verification added
+    function login(username, password) {
+      const loginBtn = document.getElementById('loginBtn');
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Memproses...';
+
+      setTimeout(() => {
+        // Check admin account
+        if (username === 'admin' && password === 'admin123') {
+          // Verifikasi kode tambahan untuk admin
+          const kodeVerifikasi = prompt('Masukkan kode verifikasi admin:');
+          if (kodeVerifikasi !== 'Ayo apa kode verifikasi nya') {
+            showAlert('Kode verifikasi admin salah!', 'error');
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Masuk';
+            return;
+          }
+
+          const adminUser = {
+            id: 0,
+            name: 'Administrator',
+            username: 'admin',
+            role: 'admin',
+          };
+
+          localStorage.setItem('loggedInUser', JSON.stringify(adminUser));
+          showAlert('Login berhasil! Mengarahkan ke dashboard admin...', 'success');
+
+          setTimeout(() => {
+            window.location.href = 'dashboard_admin.html';
+          }, 1500);
+          return;
+        }
+
+        // Check user accounts
+        const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+        const user = users.find(u => u.username === username && u.password === password);
+
+        if (user) {
+          localStorage.setItem('loggedInUser', JSON.stringify(user));
+          showAlert(`Selamat datang, ${user.name}!`, 'success');
+
+          setTimeout(() => {
+            window.location.href = 'dashboard_user.html';
+          }, 1500);
+        } else {
+          showAlert('Username atau password salah!', 'error');
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Masuk';
+        }
+      }, 1000);
+    }
+
+    // On form submit
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        showAlert('Harap isi semua kolom!', 'error');
+        return;
+      }
+
+      login(username, password);
+    });
+
+    // Initialize demo users on load
+    initializeUsers();
+  </script>
+</body>
+</html>
