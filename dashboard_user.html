@@ -1857,4 +1857,96 @@
       // Add toast to container
       toastContainer.appendChild(toast);
       
-      //
+      //Close button functionality
+      toast.querySelector('.toast-close').addEventListener('click', () => {
+        toast.remove();
+      });
+      
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      }, 3000);
+    }
+
+    // Update return date when borrow date changes
+    document.getElementById('borrowDate').addEventListener('change', function() {
+      const borrowDate = new Date(this.value);
+      borrowDate.setDate(borrowDate.getDate() + 7); // Default 7 days
+      document.getElementById('returnDate').value = borrowDate.toISOString().split('T')[0];
+      document.getElementById('returnDate').min = this.value;
+    });
+
+    // Update max quantity based on selected item
+    document.getElementById('borrowItem').addEventListener('change', function() {
+      const selectedItem = items.find(item => item.name === this.value);
+      if (selectedItem) {
+        document.getElementById('borrowQuantity').max = selectedItem.quantity;
+        document.getElementById('borrowQuantity').placeholder = `Maksimal: ${selectedItem.quantity}`;
+      }
+    });
+
+    // Logout function
+    function logout() {
+      if (confirm('Apakah Anda yakin ingin keluar?')) {
+        localStorage.removeItem('loggedInUser');
+        showToast('Anda telah logout!', 'success');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1000);
+      }
+    }
+
+    // Event listeners
+    toggleSidebarBtn.addEventListener('click', toggleSidebar);
+    mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+    mobileOverlay.addEventListener('click', toggleMobileMenu);
+
+    // Close mobile menu when clicking on menu items
+    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (sidebar.classList.contains('show')) {
+          toggleMobileMenu();
+        }
+      });
+    });
+
+    // Close modals when clicking outside
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('show');
+      }
+    });
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      if (checkAuth()) {
+        loadData();
+        showSection('dashboard');
+        
+        // Refresh data every 30 seconds for sync with admin
+        setInterval(() => {
+          loadData();
+          
+          // Re-render current section
+          const activeSection = document.querySelector('.sidebar-nav ul li a.active').id.replace('menu-', '');
+          if (activeSection === 'dashboard') {
+            renderDashboard();
+          }
+        }, 30000);
+      }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 992) {
+        sidebar.classList.remove('show');
+        mobileOverlay.classList.remove('show');
+        mobileMenuBtn.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+  </script>
+</body>
+</html>
